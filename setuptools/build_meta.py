@@ -188,9 +188,14 @@ class _BuildMetaBackend(object):
         # Build in a temporary directory, then copy to the target.
         makedirs(result_directory, exist_ok=True)
         with TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
-            sys.argv = (sys.argv[:1] + setup_command +
-                        ['--dist-dir', tmp_dist_dir] +
-                        config_settings["--global-option"])
+            cmd = list(sys.argv[:1])
+            cmd.extend(setup_command)
+            for key, value in config_settings.items():
+                if key != '--global-option':
+                    cmd.extend(["--" + key, value])
+            cmd.extend(['--dist-dir', tmp_dist_dir])
+            cmd.extend(config_settings["--global-option"])
+            sys.argv = cmd
             self.run_setup()
 
             result_basename = _file_with_extension(tmp_dist_dir, result_extension)
